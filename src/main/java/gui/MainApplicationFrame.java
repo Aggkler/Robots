@@ -75,7 +75,7 @@ public class MainApplicationFrame extends JFrame {
             states.add(saveWindow(frame));
         }
         try {
-            FileOutputStream outputStream = new FileOutputStream("save.ser");
+            FileOutputStream outputStream = new FileOutputStream("save.bin");
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
             objectOutputStream.writeObject(states);
             objectOutputStream.close();
@@ -86,7 +86,7 @@ public class MainApplicationFrame extends JFrame {
 
     private void loadWindowState() {
         try {
-            FileInputStream fileInputStream = new FileInputStream("save.ser");
+            FileInputStream fileInputStream = new FileInputStream("save.bin");
             ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
 
             Object deserialized = objectInputStream.readObject();
