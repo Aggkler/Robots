@@ -3,6 +3,15 @@ package gui;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
+import java.beans.PropertyVetoException;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
@@ -42,8 +51,73 @@ public class MainApplicationFrame extends JFrame {
         gameWindow.setSize(400, 400);
         addWindow(gameWindow);
 
+        loadWindowState();
+
         setJMenuBar(createMenuBar());
         setDefaultCloseOperation(EXIT_ON_CLOSE);
+    }
+
+    private WindowState saveWindow(JInternalFrame frame) {
+        WindowState windowState = new WindowState();
+        windowState.title = frame.getTitle();
+        windowState.x = frame.getX();
+        windowState.y = frame.getY();
+        windowState.height = frame.getHeight();
+        windowState.width = frame.getWidth();
+        windowState.isIcon = frame.isIcon();
+        windowState.isMaximum = frame.isMaximum();
+        return windowState;
+    }
+
+    private void writeWindowState() {
+        List<WindowState> states = new ArrayList<>();
+        for (JInternalFrame frame : desktopPane.getAllFrames()) {
+            states.add(saveWindow(frame));
+        }
+        try {
+            FileOutputStream outputStream = new FileOutputStream("save.ser");
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+            objectOutputStream.writeObject(states);
+            objectOutputStream.close();
+        } catch (IOException e) {
+            throw new RuntimeException("Ошибка при сохранении");
+        }
+    }
+
+    private void loadWindowState() {
+        try {
+            FileInputStream fileInputStream = new FileInputStream("save.ser");
+            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+
+            Object deserialized = objectInputStream.readObject();
+            if (!(deserialized instanceof List<?> currentList)) {
+                return;
+            }
+            for (Object element : currentList) {
+                if (!(element instanceof WindowState)) {
+                    return;
+                }
+            }
+            List<WindowState> windowStates = (List<WindowState>) currentList;
+
+            for (JInternalFrame frame : desktopPane.getAllFrames()) {
+                for (WindowState windowState : windowStates) {
+                    if (windowState.title.equals(frame.getTitle())) {
+                        frame.setBounds(windowState.x, windowState.y, windowState.width, windowState.height);
+                        frame.setIcon(windowState.isIcon);
+                        frame.setMaximum(windowState.isMaximum);
+                    }
+                }
+            }
+        } catch (PropertyVetoException e) {
+            throw new RuntimeException("Исключение в настройке свернутости или развернутости");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (FileNotFoundException e) {
+            return;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     protected LogWindow createLogWindow() {
@@ -123,6 +197,7 @@ public class MainApplicationFrame extends JFrame {
 
         JMenuItem leaveMenuBar = new JMenuItem("Закрыть окно", KeyEvent.VK_L);
         leaveMenuBar.addActionListener((event) -> {
+            writeWindowState();
             checkExit();
         });
         exitMenu.add(leaveMenuBar);
