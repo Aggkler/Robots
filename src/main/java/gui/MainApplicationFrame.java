@@ -60,12 +60,12 @@ public class MainApplicationFrame extends JFrame {
     private WindowState saveWindow(JInternalFrame frame) {
         WindowState windowState = new WindowState();
         windowState.title = frame.getTitle();
+        windowState.isMaximum = frame.isMaximum();
         windowState.x = frame.getX();
         windowState.y = frame.getY();
         windowState.height = frame.getHeight();
         windowState.width = frame.getWidth();
         windowState.isIcon = frame.isIcon();
-        windowState.isMaximum = frame.isMaximum();
         return windowState;
     }
 
@@ -103,9 +103,13 @@ public class MainApplicationFrame extends JFrame {
             for (JInternalFrame frame : desktopPane.getAllFrames()) {
                 for (WindowState windowState : windowStates) {
                     if (windowState.title.equals(frame.getTitle())) {
-                        frame.setBounds(windowState.x, windowState.y, windowState.width, windowState.height);
-                        frame.setIcon(windowState.isIcon);
                         frame.setMaximum(windowState.isMaximum);
+                        if (frame.isMaximum()) {
+                            frame.setBounds(0, 0, 400, 400);
+                        } else {
+                            frame.setBounds(windowState.x, windowState.y, windowState.width, windowState.height);
+                        }
+                        frame.setIcon(windowState.isIcon);
                     }
                 }
             }
