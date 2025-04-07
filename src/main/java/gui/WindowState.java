@@ -2,8 +2,12 @@ package gui;
 
 import java.io.Serializable;
 
-class WindowState implements Serializable {
-    String title;
-    int x, y, width, height;
-    boolean isIcon, isMaximum;
-}
+public record WindowState(
+        String title,
+        int x,
+        int y,
+        int width,
+        int height,
+        boolean isIcon,
+        boolean isMaximum
+) implements Serializable {}

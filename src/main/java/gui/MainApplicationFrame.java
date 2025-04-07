@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,19 +55,76 @@ public class MainApplicationFrame extends JFrame {
         loadWindowState();
 
         setJMenuBar(createMenuBar());
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                checkExit();
+            }
+        });
     }
 
     private WindowState saveWindow(JInternalFrame frame) {
-        WindowState windowState = new WindowState();
-        windowState.title = frame.getTitle();
-        windowState.isMaximum = frame.isMaximum();
-        windowState.x = frame.getX();
-        windowState.y = frame.getY();
-        windowState.height = frame.getHeight();
-        windowState.width = frame.getWidth();
-        windowState.isIcon = frame.isIcon();
-        return windowState;
+        return new WindowState(
+                frame.getTitle(),
+                frame.getX(),
+                frame.getY(),
+                frame.getWidth(),
+                frame.getHeight(),
+                frame.isIcon(),
+                frame.isMaximum());
+    }
+
+    private void loadWindowState() {
+        try {
+            FileInputStream fileInputStream = new FileInputStream("save.bin");
+            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+
+            Object deserialized = objectInputStream.readObject();
+            if (!(deserialized instanceof List<?> currentList)) {
+                return;
+            }
+
+            for (Object element : currentList) {
+                if (!(element instanceof WindowState)) {
+                    return;
+                }
+            }
+
+            for (JInternalFrame frame : desktopPane.getAllFrames()) {
+                for (Object element : currentList) {
+                    Class<?> windowState = element.getClass();
+                    String title = (String) windowState.getMethod("title").invoke(element);
+                    if (frame.getTitle().equals(title)) {
+                        int x = (int) windowState.getMethod("x").invoke(element);
+                        int y = (int) windowState.getMethod("y").invoke(element);
+                        int width = (int) windowState.getMethod("width").invoke(element);
+                        int height = (int) windowState.getMethod("height").invoke(element);
+                        boolean isIcon = (boolean) windowState.getMethod("isIcon").invoke(element);
+                        boolean isMaximum = (boolean) windowState.getMethod("isMaximum").invoke(element);
+                        if (isMaximum) {
+                            frame.setBounds(0, 0, 400, 400);
+                        } else {
+                            frame.setBounds(x, y, width, height);
+                        }
+                        frame.setIcon(isIcon);
+
+                    }
+                }
+            }
+        } catch (PropertyVetoException e) {
+            throw new RuntimeException("Исключение в настройке свернутости или развернутости");
+        } catch (FileNotFoundException e) {
+            return;
+        } catch (ClassNotFoundException |
+                 IllegalAccessException |
+                 InvocationTargetException |
+                 NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException("Другая ошибка");
+        }
     }
 
     private void writeWindowState() {
@@ -81,46 +139,6 @@ public class MainApplicationFrame extends JFrame {
             objectOutputStream.close();
         } catch (IOException e) {
             throw new RuntimeException("Ошибка при сохранении");
-        }
-    }
-
-    private void loadWindowState() {
-        try {
-            FileInputStream fileInputStream = new FileInputStream("save.bin");
-            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
-
-            Object deserialized = objectInputStream.readObject();
-            if (!(deserialized instanceof List<?> currentList)) {
-                return;
-            }
-            for (Object element : currentList) {
-                if (!(element instanceof WindowState)) {
-                    return;
-                }
-            }
-            List<WindowState> windowStates = (List<WindowState>) currentList;
-
-            for (JInternalFrame frame : desktopPane.getAllFrames()) {
-                for (WindowState windowState : windowStates) {
-                    if (windowState.title.equals(frame.getTitle())) {
-                        frame.setMaximum(windowState.isMaximum);
-                        if (frame.isMaximum()) {
-                            frame.setBounds(0, 0, 400, 400);
-                        } else {
-                            frame.setBounds(windowState.x, windowState.y, windowState.width, windowState.height);
-                        }
-                        frame.setIcon(windowState.isIcon);
-                    }
-                }
-            }
-        } catch (PropertyVetoException e) {
-            throw new RuntimeException("Исключение в настройке свернутости или развернутости");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (FileNotFoundException e) {
-            return;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -149,7 +167,7 @@ public class MainApplicationFrame extends JFrame {
                 JOptionPane.QUESTION_MESSAGE,
                 null,
                 options,
-                null
+                options[0]
         );
         if (choice == JOptionPane.YES_OPTION) {
             System.exit(0);
