@@ -28,7 +28,7 @@ public class MainApplicationFrame extends JFrame {
 
         windowStateController.loadWindowState();
 
-        MenuConstructor menuConstructor = new MenuConstructor(this);
+        MenuBarConstructor menuConstructor = new MenuBarConstructor(this);
         setJMenuBar(menuConstructor.createMenuBar());
 
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);

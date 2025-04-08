@@ -5,10 +5,10 @@ import log.Logger;
 import javax.swing.*;
 import java.awt.event.KeyEvent;
 
-public class MenuConstructor {
+public class MenuBarConstructor {
     private final MainApplicationFrame frame;
 
-    public MenuConstructor(MainApplicationFrame frame) {
+    public MenuBarConstructor(MainApplicationFrame frame) {
         this.frame = frame;
     }
 
