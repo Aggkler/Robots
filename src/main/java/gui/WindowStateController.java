@@ -2,6 +2,7 @@ package gui;
 
 import javax.swing.*;
 import java.beans.PropertyVetoException;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -31,8 +32,10 @@ public class WindowStateController {
     }
 
     public void loadWindowState() {
+        String homeDirectory = System.getProperty("user.home");
+        File saveFile = new File(homeDirectory, "save.bin");
         try {
-            FileInputStream fileInputStream = new FileInputStream("save.bin");
+            FileInputStream fileInputStream = new FileInputStream(saveFile);
             ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
 
             Object deserialized = objectInputStream.readObject();
@@ -86,8 +89,10 @@ public class WindowStateController {
         for (JInternalFrame frame : desktopPane.getAllFrames()) {
             states.add(createWindowState(frame));
         }
+        String homeDirectory = System.getProperty("user.home");
+        File saveFile = new File(homeDirectory, "save.bin");
         try {
-            FileOutputStream outputStream = new FileOutputStream("save.bin");
+            FileOutputStream outputStream = new FileOutputStream(saveFile);
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
             objectOutputStream.writeObject(states);
             objectOutputStream.close();
