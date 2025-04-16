@@ -1,3 +1,4 @@
+
 package gui;
 
 import java.awt.Dimension;
@@ -26,7 +27,7 @@ public class MainApplicationFrame extends JFrame {
 
         createWindows();
 
-        windowStateController.loadWindowState();
+      windowStateController.loadWindowState();
 
         MenuBarConstructor menuConstructor = new MenuBarConstructor(this);
         setJMenuBar(menuConstructor.createMenuBar());
