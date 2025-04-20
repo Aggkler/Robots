@@ -9,15 +9,15 @@ import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JOptionPane;
 
+
 import log.Logger;
 
-public class MainApplicationFrame extends JFrame {
+public class MainApplicationFrame extends JFrame implements SaveAble {
     private final JDesktopPane desktopPane = new JDesktopPane();
-    private final WindowStateController windowStateController;
+    private final WindowsManager configurationManager = new WindowsManager();
 
     public MainApplicationFrame() {
         int inset = 50;
-        windowStateController = new WindowStateController(desktopPane);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setBounds(inset, inset,
                 screenSize.width - inset * 2,
@@ -25,9 +25,12 @@ public class MainApplicationFrame extends JFrame {
 
         setContentPane(desktopPane);
 
+        WindowStore.add(this);
+
         createWindows();
 
-      windowStateController.loadWindowState();
+        configurationManager.loadConfiguration();
+
 
         MenuBarConstructor menuConstructor = new MenuBarConstructor(this);
         setJMenuBar(menuConstructor.createMenuBar());
@@ -63,6 +66,10 @@ public class MainApplicationFrame extends JFrame {
     protected void addWindow(JInternalFrame frame) {
         desktopPane.add(frame);
         frame.setVisible(true);
+
+        if (frame instanceof SaveAble window) {
+            WindowStore.add(window);
+        }
     }
 
     void checkExit() {
@@ -78,8 +85,13 @@ public class MainApplicationFrame extends JFrame {
                 options[0]
         );
         if (choice == JOptionPane.YES_OPTION) {
-            windowStateController.saveWindowState();
+            configurationManager.saveConfiguration();
             System.exit(0);
         }
+    }
+
+    @Override
+    public String getId() {
+        return "MainApplicationFrame";
     }
 }
