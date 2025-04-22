@@ -11,9 +11,9 @@ public class CircularStorageLog {
     private final LogEntry[] buffer;
     private final int capacity;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
-    private int tail = 0;  //
-    private int head = 0;  //
-    private int size = 0;  // Сколько ячеек заполнено
+    private int nextLog = 0;
+    private int oldLog = 0;
+    private int size = 0;
 
 
     public int getSize() {
@@ -28,10 +28,10 @@ public class CircularStorageLog {
     public void add(LogEntry entry) {
         lock.writeLock().lock();
         try {
-            buffer[tail] = entry;
-            tail = (tail + 1) % this.capacity;
+            buffer[nextLog] = entry;
+            nextLog = (nextLog + 1) % this.capacity;
             if (this.size == this.capacity) {
-                head = (head + 1) % this.capacity;
+                oldLog = (oldLog + 1) % this.capacity;
             } else {
                 size++;
             }
@@ -48,7 +48,7 @@ public class CircularStorageLog {
             }
             List<LogEntry> result = new ArrayList<>(end - start);
             for (int i = start; i < end; i++) {
-                int index = (this.head + i) % this.capacity;
+                int index = (this.oldLog + i) % this.capacity;
                 result.add(this.buffer[index]);
             }
             return result;

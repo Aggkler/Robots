@@ -3,20 +3,10 @@ package log;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.Collections;
 
-/**
- * Что починить:
- * 1. Этот класс порождает утечку ресурсов (связанные слушатели оказываются
- * удерживаемыми в памяти)
- * 2. Этот класс хранит активные сообщения лога, но в такой реализации он
- * их лишь накапливает. Надо же, чтобы количество сообщений в логе было ограничено
- * величиной m_iQueueLength (т.е. реально нужна очередь сообщений
- * ограниченного размера)
- */
 public class LogWindowSource {
     private CircularStorageLog m_messages;
     private final CopyOnWriteArrayList<LogChangeListener> m_listeners =
             new CopyOnWriteArrayList<LogChangeListener>();
-    private volatile LogChangeListener[] m_activeListeners;
 
     public LogWindowSource(int iQueueLength) {
         m_messages = new CircularStorageLog(iQueueLength);
