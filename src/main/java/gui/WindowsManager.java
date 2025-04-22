@@ -29,7 +29,6 @@ public class WindowsManager {
     }
 
     public void loadConfiguration() {
-        System.out.println(CONFIG_PATH);
         File file = new File(CONFIG_PATH);
         if (!file.exists()) {
             return;
