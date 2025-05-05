@@ -1,4 +1,4 @@
-package gui;
+package gui.window;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
@@ -9,6 +9,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
 
+import gui.states.SaveAble;
 import log.LogChangeListener;
 import log.LogEntry;
 import log.LogWindowSource;

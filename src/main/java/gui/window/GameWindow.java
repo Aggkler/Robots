@@ -1,4 +1,7 @@
-package gui;
+package gui.window;
+
+import gui.GameVisualizer;
+import gui.states.SaveAble;
 
 import java.awt.BorderLayout;
 

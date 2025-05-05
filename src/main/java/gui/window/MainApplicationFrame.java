@@ -1,5 +1,5 @@
 
-package gui;
+package gui.window;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -10,6 +10,10 @@ import javax.swing.JInternalFrame;
 import javax.swing.JOptionPane;
 
 
+import gui.MenuBarConstructor;
+import gui.states.SaveAble;
+import gui.states.WindowStore;
+import gui.states.WindowsManager;
 import log.Logger;
 
 public class MainApplicationFrame extends JFrame implements SaveAble {
@@ -74,7 +78,7 @@ public class MainApplicationFrame extends JFrame implements SaveAble {
         }
     }
 
-    void checkExit() {
+    public void checkExit() {
         int choice = JOptionPane.showConfirmDialog(
                 this, "Вы уверены, что хотите выйти?",
                 "Подтверждение выхода",

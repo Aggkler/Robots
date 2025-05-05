@@ -1,4 +1,4 @@
-package gui;
+package gui.states;
 
 public interface SaveAble {
     String getId();
