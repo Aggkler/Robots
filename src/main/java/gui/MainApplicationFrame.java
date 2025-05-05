@@ -75,16 +75,11 @@ public class MainApplicationFrame extends JFrame implements SaveAble {
     }
 
     void checkExit() {
-        Object[] options = {"Выйти", "Остаться"};
-        int choice = JOptionPane.showOptionDialog(
-                this,
-                "Подтвердите выход из приложения",
+        int choice = JOptionPane.showConfirmDialog(
+                this, "Вы уверены, что хотите выйти?",
                 "Подтверждение выхода",
                 JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                options,
-                options[0]
+                JOptionPane.QUESTION_MESSAGE
         );
         if (choice == JOptionPane.YES_OPTION) {
             configurationManager.saveConfiguration();

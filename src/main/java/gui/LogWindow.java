@@ -13,7 +13,9 @@ import log.LogChangeListener;
 import log.LogEntry;
 import log.LogWindowSource;
 
+
 public class LogWindow extends JInternalFrame implements LogChangeListener, SaveAble {
+
     private LogWindowSource m_logSource;
     private JTextArea m_logContent;
     private static final int MAX_LOGS = 200;
