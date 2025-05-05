@@ -46,9 +46,11 @@ public class MainApplicationFrame extends JFrame implements SaveAble {
 
     private void createWindows() {
         LogWindow logWindow = createLogWindow();
+        Logger.debug("Создание окна для логирования");
         addWindow(logWindow);
 
         GameWindow gameWindow = new GameWindow();
+        Logger.debug("Создание окна для игры");
         gameWindow.setSize(400, 400);
         addWindow(gameWindow);
     }

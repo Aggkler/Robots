@@ -21,9 +21,8 @@ public class WindowsManager {
             }
         }
 
-        try {
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(CONFIG_PATH));
-            objectOutputStream.writeObject(states);
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(CONFIG_PATH))) {
+            oos.writeObject(states);
         } catch (IOException e) {
             Logger.error("Failed to save a window state: " + e.getMessage());
         }
@@ -36,9 +35,8 @@ public class WindowsManager {
         }
 
         List<WindowState> states;
-        try {
-            ObjectInputStream objectOutputStream = new ObjectInputStream(new FileInputStream(file));
-            Object object = objectOutputStream.readObject();
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
+            Object object = ois.readObject();
             if (!(object instanceof List<?> list)) return;
 
             states = new ArrayList<>();
@@ -59,7 +57,7 @@ public class WindowsManager {
             if (window instanceof Component comp) {
                 for (WindowState state : states) {
                     if (state.getId().equals(window.getId())) {
-                        setWindowState(comp, state);
+                        applyWindowState(comp, state);
                     }
                 }
             }
@@ -92,7 +90,7 @@ public class WindowsManager {
         );
     }
 
-    private void setWindowState(Component comp, WindowState state) {
+    private void applyWindowState(Component comp, WindowState state) {
         comp.setBounds(state.getX(), state.getY(), state.getWidth(), state.getHeight());
 
         if (comp instanceof JFrame jFrame) {
