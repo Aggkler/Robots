@@ -57,6 +57,9 @@ public class MainApplicationFrame extends JFrame implements SaveAble {
         Logger.debug("Создание окна для игры");
         gameWindow.setSize(400, 400);
         addWindow(gameWindow);
+
+        RobotControllerWindow controllerWindow = new RobotControllerWindow(gameWindow.getVisualizer());
+        addWindow(controllerWindow);
     }
 
     protected LogWindow createLogWindow() {

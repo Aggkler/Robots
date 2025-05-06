@@ -25,4 +25,8 @@ public class GameWindow extends JInternalFrame implements SaveAble
     public String getId() {
         return "GameWindow";
     }
+
+    public GameVisualizer getVisualizer() {
+        return this.m_visualizer;
+    }
 }
