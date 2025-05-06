@@ -54,7 +54,7 @@ public class GameVisualizer extends JPanel {
     }
 
     private void moveRobot(double velocity, double angularVelocity, double duration) {
-        velocity = applyLimits(velocity, 0, maxSpeed);
+        velocity = applyLimits(velocity, -maxSpeed, maxSpeed);
         angularVelocity = applyLimits(angularVelocity, -maxAngularVelocity, maxAngularVelocity);
         double newX = m_robotPositionX + velocity / angularVelocity *
                 (Math.sin(m_robotDirection + angularVelocity * duration) -
@@ -130,7 +130,7 @@ public class GameVisualizer extends JPanel {
     }
 
     public void moveBack() {
-        moveRobot(-maxSpeed / 2, 0, 10);
+        moveRobot(-maxSpeed / 10, 0, 10);
     }
 
     public void rotateLeft() {
