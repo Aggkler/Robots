@@ -73,7 +73,7 @@ public class GameVisualizer extends JPanel {
         int height = getHeight();
 
         if (newX >= robotRadius && newX <= width &&
-                newY >= robotRadius && newY <= heigашht) {
+                newY >= robotRadius && newY <= height) {
 
             m_robotPositionX = newX;
             m_robotPositionY = newY;
