@@ -11,12 +11,12 @@ import javax.swing.JOptionPane;
 
 
 import gui.MenuBarConstructor;
-import gui.states.SaveAble;
+import gui.states.Saveable;
 import gui.states.WindowStore;
 import gui.states.WindowsManager;
 import log.Logger;
 
-public class MainApplicationFrame extends JFrame implements SaveAble {
+public class MainApplicationFrame extends JFrame implements Saveable {
     private final JDesktopPane desktopPane = new JDesktopPane();
     private final WindowsManager configurationManager = new WindowsManager();
 
@@ -76,7 +76,7 @@ public class MainApplicationFrame extends JFrame implements SaveAble {
         desktopPane.add(frame);
         frame.setVisible(true);
 
-        if (frame instanceof SaveAble window) {
+        if (frame instanceof Saveable window) {
             WindowStore.add(window);
         }
     }

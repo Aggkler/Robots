@@ -15,7 +15,7 @@ public class WindowsManager {
 
     public void saveConfiguration() {
         List<WindowState> states = new ArrayList<>();
-        for (SaveAble window : WindowStore.getWindows()) {
+        for (Saveable window : WindowStore.getWindows()) {
             if (window instanceof Component comp) {
                 states.add(collectWindowState(comp, window.getId()));
             }
@@ -53,7 +53,7 @@ public class WindowsManager {
             return;
         }
 
-        for (SaveAble window : WindowStore.getWindows()) {
+        for (Saveable window : WindowStore.getWindows()) {
             if (window instanceof Component comp) {
                 for (WindowState state : states) {
                     if (state.getId().equals(window.getId())) {

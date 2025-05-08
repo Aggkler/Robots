@@ -1,5 +1,5 @@
 package gui.states;
 
-public interface SaveAble {
+public interface Saveable {
     String getId();
 }

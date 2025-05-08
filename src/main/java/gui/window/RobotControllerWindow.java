@@ -1,13 +1,14 @@
 package gui.window;
 
 import gui.GameVisualizer;
-import gui.states.SaveAble;
+import gui.states.Saveable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 
-public class RobotControllerWindow extends JInternalFrame implements SaveAble {
+public class RobotControllerWindow extends JInternalFrame implements Saveable {
     private final GameVisualizer visualizer;
 
     public RobotControllerWindow(GameVisualizer visualizer) {
@@ -20,10 +21,44 @@ public class RobotControllerWindow extends JInternalFrame implements SaveAble {
 
         keyboardControl();
 
-        setSize(300, 400);
-        setLocation(450, 20);
+        setSize(RobotConstants.DEFAULT_SIZE_WIDTH, RobotConstants.DEFAULT_SIZE_HEIGHT);
+        setLocation(RobotConstants.DEFAULT_POSITION_X, RobotConstants.DEFAULT_POSITION_Y);
         pack();
     }
+
+    private static class RobotConstants {
+        public static final int DEFAULT_ROBOT_INIT = 30;
+        public static final int MIN_ROBOT_SIZE = 20;
+        public static final int MAX_ROBOT_SIZE = 50;
+        public static final int DEFAULT_MAJOR_TICK = 10;
+
+        public static final int MIN_SPEED = 0;
+        public static final int MAX_SPEED = 100;
+
+        public static final int DEFAULT_MAX_ANGULAR_VELOCITY = 5;
+        public static final int MIN_ANGULAR_VELOCITY = 0;
+        public static final int MAX_ANGULAR_VELOCITY = 10;
+        public static final int DEFAULT_MAJOR_TICK_ANGULAR = 1;
+
+        public static final int DEFAULT_SIZE_WIDTH = 300;
+        public static final int DEFAULT_SIZE_HEIGHT = 400;
+
+        public static final int DEFAULT_POSITION_X = 450;
+        public static final int DEFAULT_POSITION_Y = 20;
+
+        public static final int DEFAULT_COUNT_COLUMNS = 3;
+        public static final int DEFAULT_GAP = 3;
+
+        public static final int SPEED_DIVIDER = 100;
+        public static final int ANGULAR_DIVIDER = 1000;
+
+        private static final String ACTION_MOVE_STRAIGHT = "moveStraight";
+        private static final String ACTION_MOVE_BACK = "moveBack";
+        private static final String ACTION_ROTATE_LEFT = "rotateLeft";
+        private static final String ACTION_ROTATE_RIGHT = "rotateRight";
+
+    }
+
 
     private JPanel createControlPanel() {
         JButton moveUpButton = new JButton("↑");
@@ -36,7 +71,8 @@ public class RobotControllerWindow extends JInternalFrame implements SaveAble {
         rotateLeftButton.addActionListener(e -> visualizer.rotateLeft());
         rotateRightButton.addActionListener(e -> visualizer.rotateRight());
 
-        JPanel panel = new JPanel(new GridLayout(3, 3, 5, 5));
+        JPanel panel = new JPanel(new GridLayout(RobotConstants.DEFAULT_COUNT_COLUMNS,
+                RobotConstants.DEFAULT_COUNT_COLUMNS, RobotConstants.DEFAULT_GAP, RobotConstants.DEFAULT_GAP));
         panel.setBorder(BorderFactory.createTitledBorder("Контроллер"));
 
         panel.add(new JLabel());
@@ -55,12 +91,18 @@ public class RobotControllerWindow extends JInternalFrame implements SaveAble {
     }
 
     private JPanel createSettingsPanel() {
-        JPanel panel = new JPanel(new GridLayout(6, 1));
+        JPanel panel = new JPanel(new GridLayout(RobotConstants.DEFAULT_COUNT_COLUMNS * 2,
+                RobotConstants.DEFAULT_COUNT_COLUMNS / 3));
         panel.setBorder(BorderFactory.createTitledBorder("Настройки"));
 
-        JSlider sizeSlider = createSizeSlider();
-        JSlider speedSlider = createSpeedSlider();
-        JSlider angleSlider = createAngleSlider();
+        JSlider sizeSlider = createSlider(RobotConstants.MIN_ROBOT_SIZE, RobotConstants.MAX_ROBOT_SIZE,
+                RobotConstants.DEFAULT_ROBOT_INIT, RobotConstants.DEFAULT_MAJOR_TICK, visualizer::setRobotSize);
+        JSlider speedSlider = createSlider(RobotConstants.MIN_SPEED, RobotConstants.MAX_SPEED,
+                RobotConstants.DEFAULT_ROBOT_INIT, RobotConstants.DEFAULT_MAJOR_TICK,
+                value -> visualizer.setMaxSpeed((double) value / RobotConstants.SPEED_DIVIDER));
+        JSlider angleSlider = createSlider(RobotConstants.MIN_ANGULAR_VELOCITY, RobotConstants.MAX_ANGULAR_VELOCITY,
+                RobotConstants.DEFAULT_MAX_ANGULAR_VELOCITY, RobotConstants.DEFAULT_MAJOR_TICK_ANGULAR,
+                value -> visualizer.setMaxAngularVelocity((double) value / RobotConstants.ANGULAR_DIVIDER));
 
         panel.add(new JLabel("Размер робота"));
         panel.add(sizeSlider);
@@ -72,30 +114,12 @@ public class RobotControllerWindow extends JInternalFrame implements SaveAble {
         return panel;
     }
 
-    private JSlider createSizeSlider() {
-        JSlider slider = new JSlider(20, 50, 30);
-        slider.setMajorTickSpacing(10);
+    private JSlider createSlider(int min, int max, int initial, int majorTick, java.util.function.IntConsumer func) {
+        JSlider slider = new JSlider(min, max, initial);
+        slider.setMajorTickSpacing(majorTick);
         slider.setPaintTicks(true);
         slider.setPaintLabels(true);
-        slider.addChangeListener(e -> visualizer.setRobotSize(slider.getValue()));
-        return slider;
-    }
-
-    private JSlider createSpeedSlider() {
-        JSlider slider = new JSlider(0, 100, 10);
-        slider.setMajorTickSpacing(10);
-        slider.setPaintTicks(true);
-        slider.setPaintLabels(true);
-        slider.addChangeListener(e -> visualizer.setMaxSpeed(slider.getValue() / 100.0));
-        return slider;
-    }
-
-    private JSlider createAngleSlider() {
-        JSlider slider = new JSlider(0, 100, 1);
-        slider.setMajorTickSpacing(10);
-        slider.setPaintTicks(true);
-        slider.setPaintLabels(true);
-        slider.addChangeListener(e -> visualizer.setMaxAngularVelocity(slider.getValue() / 1000.0));
+        slider.addChangeListener(e -> func.accept(slider.getValue()));
         return slider;
     }
 
@@ -103,30 +127,34 @@ public class RobotControllerWindow extends JInternalFrame implements SaveAble {
         InputMap inputMap = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap actionMap = getRootPane().getActionMap();
 
-        inputMap.put(KeyStroke.getKeyStroke("W"), "moveStraight");
-        inputMap.put(KeyStroke.getKeyStroke("S"), "moveBack");
-        inputMap.put(KeyStroke.getKeyStroke("A"), "rotateLeft");
-        inputMap.put(KeyStroke.getKeyStroke("D"), "rotateRight");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W, 0),
+                RobotConstants.ACTION_MOVE_STRAIGHT);
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0),
+                RobotConstants.ACTION_MOVE_BACK);
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0),
+                RobotConstants.ACTION_ROTATE_LEFT);
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0),
+                RobotConstants.ACTION_ROTATE_RIGHT);
 
-        actionMap.put("moveStraight", new AbstractAction() {
+        actionMap.put(RobotConstants.ACTION_MOVE_STRAIGHT, new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 visualizer.moveStraight();
             }
         });
-        actionMap.put("moveBack", new AbstractAction() {
+        actionMap.put(RobotConstants.ACTION_MOVE_BACK, new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 visualizer.moveBack();
             }
         });
-        actionMap.put("rotateLeft", new AbstractAction() {
+        actionMap.put(RobotConstants.ACTION_ROTATE_LEFT, new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 visualizer.rotateLeft();
             }
         });
-        actionMap.put("rotateRight", new AbstractAction() {
+        actionMap.put(RobotConstants.ACTION_ROTATE_RIGHT, new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 visualizer.rotateRight();

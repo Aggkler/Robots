@@ -9,13 +9,13 @@ import javax.swing.JScrollPane;
 import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
 
-import gui.states.SaveAble;
+import gui.states.Saveable;
 import log.LogChangeListener;
 import log.LogEntry;
 import log.LogWindowSource;
 
 
-public class LogWindow extends JInternalFrame implements LogChangeListener, SaveAble {
+public class LogWindow extends JInternalFrame implements LogChangeListener, Saveable {
 
     private LogWindowSource m_logSource;
     private JTextArea m_logContent;

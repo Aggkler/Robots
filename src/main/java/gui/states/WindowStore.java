@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class WindowStore {
-    private static final List<SaveAble> windows = new ArrayList<>();
+    private static final List<Saveable> windows = new ArrayList<>();
 
-    public static void add(SaveAble window) {
+    public static void add(Saveable window) {
         windows.add(window);
     }
 
-    public static List<SaveAble> getWindows() {
+    public static List<Saveable> getWindows() {
         return windows;
     }
 }
