@@ -48,12 +48,12 @@ public class GameVisualizer extends JPanel {
     private static double applyLimits(double value, double min, double max) {
         if (value < min)
             return min;
-        if (value > max)
+        else if (value > max)
             return max;
         return value;
     }
 
-    private void moveRobot(double velocity, double angularVelocity, double duration) {
+    private void moveRobot(double velocity, double angularVelocity, int duration) {
         velocity = applyLimits(velocity, -maxSpeed, maxSpeed);
         angularVelocity = applyLimits(angularVelocity, -maxAngularVelocity, maxAngularVelocity);
         double newX = m_robotPositionX + velocity / angularVelocity *
