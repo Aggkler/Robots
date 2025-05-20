@@ -56,7 +56,6 @@ public class RobotControllerWindow extends JInternalFrame implements Saveable {
         private static final String ACTION_MOVE_BACK = "moveBack";
         private static final String ACTION_ROTATE_LEFT = "rotateLeft";
         private static final String ACTION_ROTATE_RIGHT = "rotateRight";
-
     }
 
 

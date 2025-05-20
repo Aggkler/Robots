@@ -5,6 +5,9 @@ import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -13,6 +16,7 @@ import javax.swing.JPanel;
 public class GameVisualizer extends JPanel {
     private final Timer m_timer = initTimer();
     private int robotSize = 30;
+    private final List<Point2D.Double> path = new ArrayList<>();
 
     private static Timer initTimer() {
         Timer timer = new Timer("events generator", true);
@@ -74,10 +78,15 @@ public class GameVisualizer extends JPanel {
 
         if (newX >= robotRadius && newX <= width - robotRadius &&
                 newY >= robotRadius && newY <= height - robotRadius) {
-
             m_robotPositionX = newX;
             m_robotPositionY = newY;
             m_robotDirection = asNormalizedRadians(m_robotDirection + angularVelocity * duration);
+
+            path.add(new Point2D.Double(m_robotPositionX, m_robotPositionY));
+            if (path.size() > 50) {
+                path.remove(0);
+            }
+            repaint();
         }
     }
 
@@ -96,9 +105,16 @@ public class GameVisualizer extends JPanel {
     }
 
     @Override
-    public void paint(Graphics g) {
-        super.paint(g);
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
+
+        for (int i = 1; i < path.size(); i++) {
+            Point2D.Double p1 = path.get(i - 1);
+            Point2D.Double p2 = path.get(i);
+            g.drawLine((int) p1.x, (int) p1.y, (int) p2.x, (int) p2.y);
+        }
+
         drawRobot(g2d, round(m_robotPositionX), round(m_robotPositionY), m_robotDirection);
     }
 
@@ -111,18 +127,19 @@ public class GameVisualizer extends JPanel {
     }
 
     private void drawRobot(Graphics2D g, int x, int y, double direction) {
-        int robotCenterX = round(m_robotPositionX);
-        int robotCenterY = round(m_robotPositionY);
-        AffineTransform t = AffineTransform.getRotateInstance(direction, robotCenterX, robotCenterY);
-        g.setTransform(t);
+        AffineTransform oldTransform = g.getTransform();
+        g.translate(x, y);
+        g.rotate(direction);
+
         g.setColor(Color.MAGENTA);
-        fillOval(g, robotCenterX, robotCenterY, robotSize, robotSize / 3);
+        fillOval(g, 0, 0, robotSize, robotSize / 3);
         g.setColor(Color.BLACK);
-        drawOval(g, robotCenterX, robotCenterY, robotSize, robotSize / 3);
+        drawOval(g, 0, 0, robotSize, robotSize / 3);
         g.setColor(Color.WHITE);
-        fillOval(g, robotCenterX + 10, robotCenterY, 5, 5);
+        fillOval(g, robotSize / 2 - 5, 0, 5, 5);
         g.setColor(Color.BLACK);
-        drawOval(g, robotCenterX + 10, robotCenterY, 5, 5);
+        drawOval(g, robotSize / 2 - 5, 0, 5, 5);
+        g.setTransform(oldTransform);
     }
 
     public void moveStraight() {
