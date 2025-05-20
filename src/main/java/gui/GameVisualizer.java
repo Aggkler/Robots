@@ -1,11 +1,20 @@
 package gui;
 
+import log.Logger;
+
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -17,6 +26,8 @@ public class GameVisualizer extends JPanel {
     private final Timer m_timer = initTimer();
     private int robotSize = 30;
     private final List<Point2D.Double> path = new ArrayList<>();
+    private final List<String> commandQueue = new ArrayList<>();
+    private final String FILE_NAME_COMMANDS = "Commands.txt";
 
     private static Timer initTimer() {
         Timer timer = new Timer("events generator", true);
@@ -40,6 +51,8 @@ public class GameVisualizer extends JPanel {
         m_timer.schedule(new TimerTask() {
             @Override
             public void run() {
+                loadCommandsFromFile();
+                executeNextCommand();
                 onRedrawEvent();
             }
         }, 0, 50);
@@ -141,6 +154,60 @@ public class GameVisualizer extends JPanel {
         drawOval(g, robotSize / 2 - 5, 0, 5, 5);
         g.setTransform(oldTransform);
     }
+
+    private void loadCommandsFromFile() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_NAME_COMMANDS))) {
+            commandQueue.clear();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                commandQueue.add(line.trim());
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void removeFirstCommandFromFile() {
+        try {
+            List<String> lines = Files.readAllLines(Paths.get(FILE_NAME_COMMANDS));
+            if (!lines.isEmpty()) {
+                lines.remove(0);
+                Files.write(Paths.get(FILE_NAME_COMMANDS), lines);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void executeNextCommand() {
+        if (commandQueue.isEmpty()) {
+            return;
+        }
+
+        String command = commandQueue.remove(0);
+        switch (command) {
+            case "MOVE_FORWARD":
+                Logger.debug("Сommands from file: " + command);
+                moveStraight();
+                break;
+            case "MOVE_BACK":
+                Logger.debug("Сommands from file: " + command);
+                moveBack();
+                break;
+            case "ROTATE_LEFT":
+                Logger.debug("Сommands from file: " + command);
+                rotateLeft();
+                break;
+            case "ROTATE_RIGHT":
+                Logger.debug("Сommands from file: " + command);
+                rotateRight();
+                break;
+            default:
+                Logger.debug("Unknown command: " + command);
+        }
+        removeFirstCommandFromFile();
+    }
+
 
     public void moveStraight() {
         moveRobot(0.1, 0, 10);
