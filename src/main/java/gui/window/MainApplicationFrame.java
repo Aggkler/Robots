@@ -1,5 +1,5 @@
 
-package gui;
+package gui.window;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -10,9 +10,13 @@ import javax.swing.JInternalFrame;
 import javax.swing.JOptionPane;
 
 
+import gui.MenuBarConstructor;
+import gui.states.Saveable;
+import gui.states.WindowStore;
+import gui.states.WindowsManager;
 import log.Logger;
 
-public class MainApplicationFrame extends JFrame implements SaveAble {
+public class MainApplicationFrame extends JFrame implements Saveable {
     private final JDesktopPane desktopPane = new JDesktopPane();
     private final WindowsManager configurationManager = new WindowsManager();
 
@@ -53,6 +57,9 @@ public class MainApplicationFrame extends JFrame implements SaveAble {
         Logger.debug("Создание окна для игры");
         gameWindow.setSize(400, 400);
         addWindow(gameWindow);
+
+        RobotControllerWindow controllerWindow = new RobotControllerWindow(gameWindow.getVisualizer());
+        addWindow(controllerWindow);
     }
 
     protected LogWindow createLogWindow() {
@@ -69,12 +76,12 @@ public class MainApplicationFrame extends JFrame implements SaveAble {
         desktopPane.add(frame);
         frame.setVisible(true);
 
-        if (frame instanceof SaveAble window) {
+        if (frame instanceof Saveable window) {
             WindowStore.add(window);
         }
     }
 
-    void checkExit() {
+    public void checkExit() {
         int choice = JOptionPane.showConfirmDialog(
                 this, "Вы уверены, что хотите выйти?",
                 "Подтверждение выхода",

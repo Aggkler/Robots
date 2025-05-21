@@ -1,11 +1,14 @@
-package gui;
+package gui.window;
+
+import gui.GameVisualizer;
+import gui.states.Saveable;
 
 import java.awt.BorderLayout;
 
 import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
 
-public class GameWindow extends JInternalFrame implements SaveAble
+public class GameWindow extends JInternalFrame implements Saveable
 {
     private final GameVisualizer m_visualizer;
     public GameWindow() 
@@ -21,5 +24,9 @@ public class GameWindow extends JInternalFrame implements SaveAble
     @Override
     public String getId() {
         return "GameWindow";
+    }
+
+    public GameVisualizer getVisualizer() {
+        return this.m_visualizer;
     }
 }
