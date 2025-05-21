@@ -96,7 +96,7 @@ public class GameVisualizer extends JPanel {
             m_robotDirection = asNormalizedRadians(m_robotDirection + angularVelocity * duration);
 
             path.add(new Point2D.Double(m_robotPositionX, m_robotPositionY));
-            if (path.size() > 50) {
+            if (path.size() > 1000) {
                 path.remove(0);
             }
             repaint();
