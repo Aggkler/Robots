@@ -140,7 +140,7 @@ public class GameVisualizer extends JPanel {
     }
 
     private void drawRobot(Graphics2D g, int x, int y, double direction) {
-        AffineTransform oldTransform = g.getTransform();
+        AffineTransform t = g.getTransform();
         g.translate(x, y);
         g.rotate(direction);
 
@@ -152,7 +152,7 @@ public class GameVisualizer extends JPanel {
         fillOval(g, robotSize / 2 - 5, 0, 5, 5);
         g.setColor(Color.BLACK);
         drawOval(g, robotSize / 2 - 5, 0, 5, 5);
-        g.setTransform(oldTransform);
+        g.setTransform(t);
     }
 
     private void loadCommandsFromFile() {
