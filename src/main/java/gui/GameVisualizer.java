@@ -127,7 +127,6 @@ public class GameVisualizer extends JPanel {
             Point2D.Double p2 = path.get(i);
             g.drawLine((int) p1.x, (int) p1.y, (int) p2.x, (int) p2.y);
         }
-
         drawRobot(g2d, round(m_robotPositionX), round(m_robotPositionY), m_robotDirection);
     }
 
@@ -207,8 +206,6 @@ public class GameVisualizer extends JPanel {
         }
         removeFirstCommandFromFile();
     }
-
-
     public void moveStraight() {
         moveRobot(0.1, 0, 10);
     }
