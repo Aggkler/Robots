@@ -1,10 +1,22 @@
 package gui;
 
+import log.Logger;
+
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -13,6 +25,9 @@ import javax.swing.JPanel;
 public class GameVisualizer extends JPanel {
     private final Timer m_timer = initTimer();
     private int robotSize = 30;
+    private final List<Point2D.Double> path = new ArrayList<>();
+    private final List<String> commandQueue = new ArrayList<>();
+    private final String FILE_NAME_COMMANDS = "Commands.txt";
 
     private static Timer initTimer() {
         Timer timer = new Timer("events generator", true);
@@ -36,6 +51,8 @@ public class GameVisualizer extends JPanel {
         m_timer.schedule(new TimerTask() {
             @Override
             public void run() {
+                loadCommandsFromFile();
+                executeNextCommand();
                 onRedrawEvent();
             }
         }, 0, 50);
@@ -74,10 +91,15 @@ public class GameVisualizer extends JPanel {
 
         if (newX >= robotRadius && newX <= width - robotRadius &&
                 newY >= robotRadius && newY <= height - robotRadius) {
-
             m_robotPositionX = newX;
             m_robotPositionY = newY;
             m_robotDirection = asNormalizedRadians(m_robotDirection + angularVelocity * duration);
+
+            path.add(new Point2D.Double(m_robotPositionX, m_robotPositionY));
+            if (path.size() > 1000) {
+                path.remove(0);
+            }
+            repaint();
         }
     }
 
@@ -96,9 +118,15 @@ public class GameVisualizer extends JPanel {
     }
 
     @Override
-    public void paint(Graphics g) {
-        super.paint(g);
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
+
+        for (int i = 1; i < path.size(); i++) {
+            Point2D.Double p1 = path.get(i - 1);
+            Point2D.Double p2 = path.get(i);
+            g.drawLine((int) p1.x, (int) p1.y, (int) p2.x, (int) p2.y);
+        }
         drawRobot(g2d, round(m_robotPositionX), round(m_robotPositionY), m_robotDirection);
     }
 
@@ -111,20 +139,73 @@ public class GameVisualizer extends JPanel {
     }
 
     private void drawRobot(Graphics2D g, int x, int y, double direction) {
-        int robotCenterX = round(m_robotPositionX);
-        int robotCenterY = round(m_robotPositionY);
-        AffineTransform t = AffineTransform.getRotateInstance(direction, robotCenterX, robotCenterY);
-        g.setTransform(t);
+        AffineTransform t = g.getTransform();
+        g.translate(x, y);
+        g.rotate(direction);
+
         g.setColor(Color.MAGENTA);
-        fillOval(g, robotCenterX, robotCenterY, robotSize, robotSize / 3);
+        fillOval(g, 0, 0, robotSize, robotSize / 3);
         g.setColor(Color.BLACK);
-        drawOval(g, robotCenterX, robotCenterY, robotSize, robotSize / 3);
+        drawOval(g, 0, 0, robotSize, robotSize / 3);
         g.setColor(Color.WHITE);
-        fillOval(g, robotCenterX + 10, robotCenterY, 5, 5);
+        fillOval(g, robotSize / 2 - 5, 0, 5, 5);
         g.setColor(Color.BLACK);
-        drawOval(g, robotCenterX + 10, robotCenterY, 5, 5);
+        drawOval(g, robotSize / 2 - 5, 0, 5, 5);
+        g.setTransform(t);
     }
 
+    private void loadCommandsFromFile() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_NAME_COMMANDS))) {
+            commandQueue.clear();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                commandQueue.add(line.trim());
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void removeFirstCommandFromFile() {
+        try {
+            List<String> lines = Files.readAllLines(Paths.get(FILE_NAME_COMMANDS));
+            if (!lines.isEmpty()) {
+                lines.remove(0);
+                Files.write(Paths.get(FILE_NAME_COMMANDS), lines);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void executeNextCommand() {
+        if (commandQueue.isEmpty()) {
+            return;
+        }
+
+        String command = commandQueue.remove(0);
+        switch (command) {
+            case "MOVE_FORWARD":
+                Logger.debug("Сommands from file: " + command);
+                moveStraight();
+                break;
+            case "MOVE_BACK":
+                Logger.debug("Сommands from file: " + command);
+                moveBack();
+                break;
+            case "ROTATE_LEFT":
+                Logger.debug("Сommands from file: " + command);
+                rotateLeft();
+                break;
+            case "ROTATE_RIGHT":
+                Logger.debug("Сommands from file: " + command);
+                rotateRight();
+                break;
+            default:
+                Logger.debug("Unknown command: " + command);
+        }
+        removeFirstCommandFromFile();
+    }
     public void moveStraight() {
         moveRobot(0.1, 0, 10);
     }
