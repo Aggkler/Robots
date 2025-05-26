@@ -94,31 +94,15 @@ public class GameVisualizer extends JPanel {
     private void executeNextCommand() {
         if (commandQueue.isEmpty()) return;
 
-        String command = commandQueue.remove(0);
-        int panelWidth = getWidth();
-        int panelHeight = getHeight();
-
-        switch (command) {
-            case "MOVE_FORWARD":
-                Logger.debug("Command: " + command);
-                robotMovement.moveStraight(panelWidth, panelHeight);
-                break;
-            case "MOVE_BACK":
-                Logger.debug("Command: " + command);
-                robotMovement.moveBack(panelWidth, panelHeight);
-                break;
-            case "ROTATE_LEFT":
-                Logger.debug("Command: " + command);
-                robotMovement.rotateLeft(panelWidth, panelHeight);
-                break;
-            case "ROTATE_RIGHT":
-                Logger.debug("Command: " + command);
-                robotMovement.rotateRight(panelWidth, panelHeight);
-                break;
-            default:
-                Logger.debug("Unknown command: " + command);
+        String commandStr = commandQueue.remove(0);
+        CommandType command = CommandType.fromString(commandStr);
+        if (command != null) {
+            Logger.debug("Command: " + command);
+            command.execute(robotMovement, this);
+        } else {
+            Logger.debug("Unknown command: " + commandStr);
         }
-
         commandReader.removeFirstCommandFromFile();
     }
+
 }

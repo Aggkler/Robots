@@ -1,5 +1,7 @@
 package gui;
 
+import log.Logger;
+
 import java.awt.geom.Point2D;
 import java.util.LinkedList;
 
