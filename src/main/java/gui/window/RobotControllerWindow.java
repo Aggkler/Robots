@@ -1,6 +1,7 @@
 package gui.window;
 
 import gui.GameVisualizer;
+import gui.RobotMovement;
 import gui.states.Saveable;
 
 import javax.swing.*;
@@ -9,10 +10,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
 public class RobotControllerWindow extends JInternalFrame implements Saveable {
+    private final RobotMovement robotMovement;
     private final GameVisualizer visualizer;
 
-    public RobotControllerWindow(GameVisualizer visualizer) {
+    public RobotControllerWindow(RobotMovement robotMovement, GameVisualizer visualizer) {
         super("Управление роботом", true, true, true, true);
+        this.robotMovement = robotMovement;
         this.visualizer = visualizer;
 
         setLayout(new BorderLayout());
@@ -56,7 +59,6 @@ public class RobotControllerWindow extends JInternalFrame implements Saveable {
         private static final String ACTION_MOVE_BACK = "moveBack";
         private static final String ACTION_ROTATE_LEFT = "rotateLeft";
         private static final String ACTION_ROTATE_RIGHT = "rotateRight";
-
     }
 
 
@@ -66,10 +68,15 @@ public class RobotControllerWindow extends JInternalFrame implements Saveable {
         JButton rotateLeftButton = new JButton("←");
         JButton rotateRightButton = new JButton("→");
 
-        moveUpButton.addActionListener(e -> visualizer.moveStraight());
-        moveDownButton.addActionListener(e -> visualizer.moveBack());
-        rotateLeftButton.addActionListener(e -> visualizer.rotateLeft());
-        rotateRightButton.addActionListener(e -> visualizer.rotateRight());
+        moveUpButton.addActionListener(e ->
+                robotMovement.moveStraight(visualizer.getWidth(), visualizer.getHeight()));
+        moveDownButton.addActionListener(e ->
+                robotMovement.moveBack(visualizer.getWidth(), visualizer.getHeight()));
+        rotateLeftButton.addActionListener(e ->
+                robotMovement.rotateLeft(visualizer.getWidth(), visualizer.getHeight()));
+        rotateRightButton.addActionListener(e ->
+                robotMovement.rotateRight(visualizer.getWidth(), visualizer.getHeight()));
+        visualizer.repaint();
 
         JPanel panel = new JPanel(new GridLayout(RobotConstants.DEFAULT_COUNT_COLUMNS,
                 RobotConstants.DEFAULT_COUNT_COLUMNS, RobotConstants.DEFAULT_GAP, RobotConstants.DEFAULT_GAP));
@@ -96,13 +103,13 @@ public class RobotControllerWindow extends JInternalFrame implements Saveable {
         panel.setBorder(BorderFactory.createTitledBorder("Настройки"));
 
         JSlider sizeSlider = createSlider(RobotConstants.MIN_ROBOT_SIZE, RobotConstants.MAX_ROBOT_SIZE,
-                RobotConstants.DEFAULT_ROBOT_INIT, RobotConstants.DEFAULT_MAJOR_TICK, visualizer::setRobotSize);
+                RobotConstants.DEFAULT_ROBOT_INIT, RobotConstants.DEFAULT_MAJOR_TICK, robotMovement::setRobotSize);
         JSlider speedSlider = createSlider(RobotConstants.MIN_SPEED, RobotConstants.MAX_SPEED,
                 RobotConstants.DEFAULT_ROBOT_INIT, RobotConstants.DEFAULT_MAJOR_TICK,
-                value -> visualizer.setMaxSpeed((double) value / RobotConstants.SPEED_DIVIDER));
+                value -> robotMovement.setMaxSpeed((double) value / RobotConstants.SPEED_DIVIDER));
         JSlider angleSlider = createSlider(RobotConstants.MIN_ANGULAR_VELOCITY, RobotConstants.MAX_ANGULAR_VELOCITY,
                 RobotConstants.DEFAULT_MAX_ANGULAR_VELOCITY, RobotConstants.DEFAULT_MAJOR_TICK_ANGULAR,
-                value -> visualizer.setMaxAngularVelocity((double) value / RobotConstants.ANGULAR_DIVIDER));
+                value -> robotMovement.setMaxAngularVelocity((double) value / RobotConstants.ANGULAR_DIVIDER));
 
         panel.add(new JLabel("Размер робота"));
         panel.add(sizeSlider);
@@ -139,25 +146,25 @@ public class RobotControllerWindow extends JInternalFrame implements Saveable {
         actionMap.put(RobotConstants.ACTION_MOVE_STRAIGHT, new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                visualizer.moveStraight();
+                robotMovement.moveStraight(visualizer.getWidth(), visualizer.getHeight());
             }
         });
         actionMap.put(RobotConstants.ACTION_MOVE_BACK, new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                visualizer.moveBack();
+                robotMovement.moveBack(visualizer.getWidth(), visualizer.getHeight());
             }
         });
         actionMap.put(RobotConstants.ACTION_ROTATE_LEFT, new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                visualizer.rotateLeft();
+                robotMovement.rotateLeft(visualizer.getWidth(), visualizer.getHeight());
             }
         });
         actionMap.put(RobotConstants.ACTION_ROTATE_RIGHT, new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                visualizer.rotateRight();
+                robotMovement.rotateRight(visualizer.getWidth(), visualizer.getHeight());
             }
         });
     }

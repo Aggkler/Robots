@@ -1,34 +1,34 @@
 package gui;
 
+import log.Logger;
+
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.swing.JPanel;
 
 public class GameVisualizer extends JPanel {
+    private final RobotMovement robotMovement;
+    private final CommandReader commandReader = new CommandReader("Commands.txt");
     private final Timer m_timer = initTimer();
-    private int robotSize = 30;
+    private List<String> commandQueue = new ArrayList<>();
+
 
     private static Timer initTimer() {
         Timer timer = new Timer("events generator", true);
         return timer;
     }
 
-    private volatile double m_robotPositionX = 100;
-    private volatile double m_robotPositionY = 100;
-    private volatile double m_robotDirection = 0;
-
-
-    private static double maxSpeed = 0.1;
-    private static double maxAngularVelocity = 0.001;
-
-
-    public GameVisualizer() {
+    public GameVisualizer(RobotMovement robotMovement) {
+        this.robotMovement = robotMovement;
         setDoubleBuffered(true);
         setFocusable(true);
         requestFocusInWindow();
@@ -36,6 +36,8 @@ public class GameVisualizer extends JPanel {
         m_timer.schedule(new TimerTask() {
             @Override
             public void run() {
+                commandQueue = commandReader.loadCommandsFromFile();
+                executeNextCommand();
                 onRedrawEvent();
             }
         }, 0, 50);
@@ -45,61 +47,24 @@ public class GameVisualizer extends JPanel {
         EventQueue.invokeLater(this::repaint);
     }
 
-    private static double applyLimits(double value, double min, double max) {
-        if (value < min)
-            return min;
-        else if (value > max)
-            return max;
-        return value;
-    }
-
-    private void moveRobot(double velocity, double angularVelocity, int duration) {
-        velocity = applyLimits(velocity, -maxSpeed, maxSpeed);
-        angularVelocity = applyLimits(angularVelocity, -maxAngularVelocity, maxAngularVelocity);
-        double newX = m_robotPositionX + velocity / angularVelocity *
-                (Math.sin(m_robotDirection + angularVelocity * duration) -
-                        Math.sin(m_robotDirection));
-        if (!Double.isFinite(newX)) {
-            newX = m_robotPositionX + velocity * duration * Math.cos(m_robotDirection);
-        }
-        double newY = m_robotPositionY - velocity / angularVelocity *
-                (Math.cos(m_robotDirection + angularVelocity * duration) -
-                        Math.cos(m_robotDirection));
-        if (!Double.isFinite(newY)) {
-            newY = m_robotPositionY + velocity * duration * Math.sin(m_robotDirection);
-        }
-        int robotRadius = robotSize / 2;
-        int width = getWidth();
-        int height = getHeight();
-
-        if (newX >= robotRadius && newX <= width - robotRadius &&
-                newY >= robotRadius && newY <= height - robotRadius) {
-
-            m_robotPositionX = newX;
-            m_robotPositionY = newY;
-            m_robotDirection = asNormalizedRadians(m_robotDirection + angularVelocity * duration);
-        }
-    }
-
-    private static double asNormalizedRadians(double angle) {
-        while (angle < 0) {
-            angle += 2 * Math.PI;
-        }
-        while (angle >= 2 * Math.PI) {
-            angle -= 2 * Math.PI;
-        }
-        return angle;
-    }
-
     private static int round(double value) {
         return (int) (value + 0.5);
     }
 
     @Override
-    public void paint(Graphics g) {
-        super.paint(g);
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
-        drawRobot(g2d, round(m_robotPositionX), round(m_robotPositionY), m_robotDirection);
+
+        for (int i = 1; i < robotMovement.getPath().size(); i++) {
+            Point2D.Double p1 = robotMovement.getPath().get(i - 1);
+            Point2D.Double p2 = robotMovement.getPath().get(i);
+            g.drawLine((int) p1.x, (int) p1.y, (int) p2.x, (int) p2.y);
+        }
+        drawRobot(g2d,
+                round(robotMovement.getM_robotPositionX()),
+                round(robotMovement.getM_robotPositionY()),
+                robotMovement.getM_robotDirection());
     }
 
     private static void fillOval(Graphics g, int centerX, int centerY, int diam1, int diam2) {
@@ -111,45 +76,33 @@ public class GameVisualizer extends JPanel {
     }
 
     private void drawRobot(Graphics2D g, int x, int y, double direction) {
-        int robotCenterX = round(m_robotPositionX);
-        int robotCenterY = round(m_robotPositionY);
-        AffineTransform t = AffineTransform.getRotateInstance(direction, robotCenterX, robotCenterY);
-        g.setTransform(t);
+        AffineTransform t = g.getTransform();
+        g.translate(x, y);
+        g.rotate(direction);
+
         g.setColor(Color.MAGENTA);
-        fillOval(g, robotCenterX, robotCenterY, robotSize, robotSize / 3);
+        fillOval(g, 0, 0, robotMovement.getRobotSize(), robotMovement.getRobotSize() / 3);
         g.setColor(Color.BLACK);
-        drawOval(g, robotCenterX, robotCenterY, robotSize, robotSize / 3);
+        drawOval(g, 0, 0, robotMovement.getRobotSize(), robotMovement.getRobotSize() / 3);
         g.setColor(Color.WHITE);
-        fillOval(g, robotCenterX + 10, robotCenterY, 5, 5);
+        fillOval(g, robotMovement.getRobotSize() / 2 - 5, 0, 5, 5);
         g.setColor(Color.BLACK);
-        drawOval(g, robotCenterX + 10, robotCenterY, 5, 5);
+        drawOval(g, robotMovement.getRobotSize() / 2 - 5, 0, 5, 5);
+        g.setTransform(t);
     }
 
-    public void moveStraight() {
-        moveRobot(0.1, 0, 10);
+    private void executeNextCommand() {
+        if (commandQueue.isEmpty()) return;
+
+        String commandStr = commandQueue.remove(0);
+        CommandType command = CommandType.fromString(commandStr);
+        if (command != null) {
+            Logger.debug("Command: " + command);
+            command.execute(robotMovement, this);
+        } else {
+            Logger.debug("Unknown command: " + commandStr);
+        }
+        commandReader.removeFirstCommandFromFile();
     }
 
-    public void moveBack() {
-        moveRobot(-maxSpeed / 10, 0, 10);
-    }
-
-    public void rotateLeft() {
-        moveRobot(0, -0.01, 10);
-    }
-
-    public void rotateRight() {
-        moveRobot(0, 0.01, 10);
-    }
-
-    public void setRobotSize(int size) {
-        this.robotSize = size;
-    }
-
-    public void setMaxSpeed(double value) {
-        maxSpeed = Math.max(0.01, Math.min(value, 1.0));
-    }
-
-    public void setMaxAngularVelocity(double angle) {
-        maxAngularVelocity = Math.max(0.0001, Math.min(angle, 0.1));
-    }
 }

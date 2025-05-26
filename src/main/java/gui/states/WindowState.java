@@ -34,18 +34,6 @@ public class WindowState implements Serializable {
         return id;
     }
 
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public int getWidth() {
-        return width;
-    }
-
     public int getHeight() {
         return height;
     }
@@ -60,5 +48,17 @@ public class WindowState implements Serializable {
 
     public boolean isMinimized() {
         return minimized;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public int getWidth() {
+        return width;
     }
 }
