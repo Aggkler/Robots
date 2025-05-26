@@ -58,7 +58,9 @@ public class MainApplicationFrame extends JFrame implements Saveable {
         gameWindow.setSize(400, 400);
         addWindow(gameWindow);
 
-        RobotControllerWindow controllerWindow = new RobotControllerWindow(gameWindow.getVisualizer());
+        RobotControllerWindow controllerWindow = new RobotControllerWindow(
+                gameWindow.getRobotMovement(),
+                gameWindow.getVisualizer());
         addWindow(controllerWindow);
     }
 
